@@ -1,5 +1,9 @@
-# ignore the user configuration file
-conf.yaml
+# conf.yaml is normally per-user; in this Kasane Teto fork we track it
+# so the persona / character / TTS wiring travels with the repo.
+# conf.yaml
+
+# ignore external resources
+/external/*
 
 # ignore non-default background images
 /backgrounds/*
@@ -9,6 +13,7 @@ conf.yaml
 /live2d-models/*
 !/live2d-models/mao_pro
 !/live2d-models/shizuku
+!/live2d-models/重音テト
 
 # ignore non-default character configs
 /characters/*
