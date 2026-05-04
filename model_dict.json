@@ -26,5 +26,39 @@
                 "": 1
             }
         }
+    },
+    {
+        "name": "重音テト",
+        "description": "",
+        "url": "/live2d-models/重音テト/重音テト.model3.json",
+        "kScale": 0.5,
+        "initialXshift": 0,
+        "initialYshift": 0,
+        "idleMotionGroupName": "Idle",
+        "defaultEmotion" : 0,
+        "emotionMap": {
+            "neutral": 0,
+            "anger": 2,
+            "disgust": 2,
+            "fear": 1,
+            "joy": 3,
+            "smirk": 3,
+            "sadness": 1,
+            "surprise": 3
+        },
+        "tapMotions": {
+            "body": {
+                "tap_body": 30,
+                "shake": 30,
+                "pinch_in": 20,
+                "pinch_out": 20
+            },
+            "head": {
+                "flick_head": 40,
+                "shake": 20,
+                "pinch_in": 20,
+                "pinch_out": 20
+            }
     }
+}
 ]

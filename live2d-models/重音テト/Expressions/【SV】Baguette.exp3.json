@@ -1,0 +1,27 @@
+{
+    "Type": "Live2D Expression",
+    "FadeInTime": 0.0,
+    "FadeOutTime": 0.0,
+    "Parameters": [
+        {
+            "Id": "ParamRegHandsOFFLIN",
+            "Value": 0.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamRegHandsOFFRIN2",
+            "Value": 0.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamSVMCON",
+            "Value": 0.0,
+            "Blend": "Add"
+        },
+        {
+            "Id": "ParamBHandIN",
+            "Value": 1.0,
+            "Blend": "Add"
+        }
+    ]
+}
