@@ -1,0 +1,8 @@
+# Phase 4 D-04 — body-bob audio-RMS extension
+# Source spec: 04-RESEARCH.md "Verified Pattern 4"
+# Target: Open-LLM-VTuber-Web/src/renderer/WebSDK/src/lappmodel.ts
+# Adds: _speechRmsSmoothed field; in update() after the Option A
+# routing block and watermark force-pin, reads _wavFileHandler.getRms()
+# with EMA smoothing (alpha=0.15) and applies it to ParamBodyAngleY
+# via addParameterValueById, scaled by 3.0 (max 3 degrees sway).
+# Regenerate this file with `git diff -p` after applying in Task 2.

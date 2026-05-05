@@ -81,3 +81,10 @@ private/
 mcp_servers.json
 
 .vscode/
+
+# Phase 4 D-04 frontend build source (cloned at build time, not tracked)
+frontend-src/*
+!frontend-src/.gitkeep
+!frontend-src/patches/
+!frontend-src/patches/**
+!frontend-src/BUILD.md

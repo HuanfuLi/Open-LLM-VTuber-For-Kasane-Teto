@@ -1,0 +1,6 @@
+# Phase 4 D-04 — Option A VTube routing patch
+# Source spec: patches/lappmodel-vtube-routing.md
+# Target: Open-LLM-VTuber-Web/src/renderer/WebSDK/src/lappmodel.ts
+# NOTE: Regenerate this file with `git diff -p` after applying the hunks
+# in Task 2. The spec text is the source of truth; this file is the
+# buildable form.
