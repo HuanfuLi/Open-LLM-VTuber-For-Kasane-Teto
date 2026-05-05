@@ -24,6 +24,9 @@ class Live2dModel:
     model_info: dict
     emo_map: dict
     emo_str: str
+    action_map: dict
+    action_str: str
+    full_action_str: str
 
     def __init__(
         self, live2d_model_name: str, model_dict_path: str = "model_dict.json"
@@ -51,6 +54,16 @@ class Live2dModel:
         self.emo_str: str = " ".join([f"[{key}]," for key in self.emo_map.keys()])
         # emo_str is a string of the keys in the emoMap dictionary. The keys are enclosed in square brackets.
         # example: `"[fear], [anger], [disgust], [sadness], [joy], [neutral], [surprise]"`
+
+        # Phase 4 D-06/D-10/D-13: actionMap is optional per-model.
+        # When present, action tags route to expression Name strings
+        # (e.g., "hold-mic" -> "SV Mic"). Mirrors the emo_str pattern
+        # so the LLM gets the new vocabulary auto-injected via the
+        # <insert_action_keys> placeholder in the prompt template.
+        action_map_raw = self.model_info.get("actionMap", {}) or {}
+        self.action_map: dict = {k.lower(): v for k, v in action_map_raw.items()}
+        self.action_str: str = " ".join([f"[{key}]," for key in self.action_map.keys()])
+        self.full_action_str: str = (self.emo_str + " " + self.action_str).strip()
 
     def _load_file_content(self, file_path: str) -> str:
         """Load the content of a file with robust encoding handling."""
@@ -191,4 +204,55 @@ class Live2dModel:
                 end_index = start_index + len(lower_key)
                 target_str = target_str[:start_index] + target_str[end_index:]
                 lower_str = lower_str[:start_index] + lower_str[end_index:]
+        return target_str
+
+    def extract_action(self, str_to_check: str) -> list:
+        """Extract Phase 4 action tags (D-06/D-13) from input string.
+
+        Returns a list of expression Name strings (resolved through actionMap)
+        in the order they appear. Unknown tags are silently dropped — the
+        LLM may invent tags it shouldn't (REQUIREMENTS.md robustness).
+
+        Parameters:
+            str_to_check (str): The string to check for action tags.
+
+        Returns:
+            list: A list of expression Name strings found in the string.
+        """
+        action_list: list = []
+        lower = str_to_check.lower()
+        i = 0
+        while i < len(lower):
+            if lower[i] != "[":
+                i += 1
+                continue
+            for key in self.action_map.keys():
+                tag = f"[{key}]"
+                if lower[i : i + len(tag)] == tag:
+                    action_list.append(self.action_map[key])
+                    i += len(tag) - 1
+                    break
+            i += 1
+        return action_list
+
+    def remove_action_tags(self, target_str: str) -> str:
+        """Strip Phase 4 action tag brackets from a string.
+
+        Mirrors remove_emotion_keywords. Useful for the TTS path so
+        action tags don't get spoken aloud.
+
+        Parameters:
+            target_str (str): The string to remove action tags from.
+
+        Returns:
+            str: The cleaned string with action tags removed.
+        """
+        lower_str = target_str.lower()
+        for key in self.action_map.keys():
+            lower_key = f"[{key}]".lower()
+            while lower_key in lower_str:
+                start = lower_str.find(lower_key)
+                end = start + len(lower_key)
+                target_str = target_str[:start] + target_str[end:]
+                lower_str = lower_str[:start] + lower_str[end:]
         return target_str
