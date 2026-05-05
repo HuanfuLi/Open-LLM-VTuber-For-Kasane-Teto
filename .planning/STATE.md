@@ -1,6 +1,6 @@
 # Project State: Vivid Actions
 
-## Current Phase: 04-vivid-actions | Plan 4 of 6
+## Current Phase: 04-vivid-actions | Plan 5 of 6
 
 ## Active Tasks
 - None
@@ -12,6 +12,7 @@
 - Phase 04 Plan 01: Test Infrastructure Bootstrap (DONE)
 - Phase 04 Plan 02: Teto Motion Authoring (DONE)
 - Phase 04 Plan 03: Richer LLM Action Vocabulary (DONE)
+- Phase 04 Plan 04: Audio-to-Params Sidecar (DONE)
 
 ## Blockers
 - None
@@ -33,6 +34,9 @@
 - asyncio_mode=auto in pyproject.toml so @pytest.mark.asyncio tests auto-detect
 - Backwards-compat: both [<insert_emomap_keys>] and [<insert_action_keys>] substituted in service_context.py
 - Teto tapMotions removed: referenced non-existent motion files (per D-15 discretion)
+- tools/__init__.py added to make tools/ a Python package for -m invocation support
+- infer_neurosync raises NotImplementedError stub; DSP fallback covers CI path
+- try/except relative import in main.py supports both direct and -m invocation
 
 ### Performance Metrics
 | Phase | Plan | Duration | Tasks | Files |
@@ -40,9 +44,11 @@
 | 04 | 01 | ~8 min | 3/3 | 8 created, 2 modified |
 | 04 | 02 | ~10 min | 3/3 | 8 created, 1 modified |
 | 04 | 03 | ~12 min | 3/3 | 2 created, 6 modified |
+| 04 | 04 | ~10 min | 3/3 | 9 created, 0 modified |
 
 ### Session Log
 - 2026-05-04 — Phase 4 context gathered. Resume from `.planning/phases/04-vivid-actions/04-CONTEXT.md`.
 - 2026-05-05 — Plan 04-01 complete. pytest installed, fixtures created, 8 RED tests landed. Stopped at: Completed 04-01-PLAN.md.
 - 2026-05-04 — Plan 04-02 complete. 7 motion3.json files authored, model3.json updated, 7 tests GREEN. Stopped at: Completed 04-02-PLAN.md.
 - 2026-05-05 — Plan 04-03 complete. actionMap loading, extract_action, actions_extractor merge, prompt injection — 23 tests GREEN. Stopped at: Completed 04-03-PLAN.md.
+- 2026-05-05 — Plan 04-04 complete. D-07 sidecar: tools/audio_to_params/ DSP fallback pipeline — 28 tests GREEN (5 new). Stopped at: Completed 04-04-PLAN.md.
