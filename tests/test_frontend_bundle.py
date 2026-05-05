@@ -55,11 +55,20 @@ def test_bundle_has_vtube_routing():
     )
 
 
-def test_bundle_has_param_body_angle_y():
-    # Body-bob extension — drives body sway from _wavFileHandler.getRms()
-    hit = _grep_any("ParamBodyAngleY")
+def test_bundle_has_tts_head_in_sway():
+    # Phase 4 D-04 TTS sway extension — adds a sinusoid to the head IN
+    # twins after routing and before physics, so the physics chain
+    # propagates the wobble to the body during speech. Replaced the
+    # earlier body-bob (ParamBodyAngleY) which physics overwrote.
+    #
+    # The string ParamAngleXIN appears in the bundle ONLY because of
+    # this patch — the Option A routing reads param IDs from the
+    # .vtube.json at runtime, so it doesn't put that literal in the
+    # bundle. If this assertion ever fails, the sway block was lost.
+    hit = _grep_any("ParamAngleXIN")
     assert hit, (
-        "ParamBodyAngleY not found in any frontend/assets/*.js — body-bob extension missing"
+        "ParamAngleXIN not found in any frontend/assets/*.js — "
+        "TTS head-IN sway extension missing from bundle"
     )
 
 

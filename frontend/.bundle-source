@@ -2,7 +2,7 @@ upstream: Open-LLM-VTuber/Open-LLM-VTuber-Web
 commit: d176e7df2366952e3bacbf12cf9a8b18a4315932
 patches:
   - patches/lappmodel-vtube-routing.patch
-  - patches/body-bob-extension.patch
+  - patches/tts-head-in-sway.patch
 build_command: npm run build:web
 build_output: dist/web/
-built_on: 2026-05-05T05:37:37Z
+built_on: 2026-05-05T10:20:52Z

@@ -1,0 +1,61 @@
+# Phase 4 D-04 — TTS body sway via head IN injection
+# Target: Open-LLM-VTuber-Web/src/renderer/WebSDK/src/lappmodel.ts
+# Replaces: the earlier body-bob extension that wrote ParamBodyAngleY
+# (futile — physics fully overwrites that param every frame).
+#
+# Root cause discovered via .physics3.json + cubismphysics.ts inspection:
+#
+#   1. The Teto rig's physics3.json outputs to ParamBodyAngleX/Y/Z with
+#      Weight=100. The Cubism physics SDK (cubismphysics.ts:1260-1262)
+#      treats Weight>=1.0 as a FULL OVERWRITE: parameterValue[0] = value.
+#   2. So ANY motion, body-bob, or direct write to those source body
+#      params is silently discarded each frame when physics evaluates.
+#   3. The only entry point physics PROPAGATES FROM is the head IN
+#      twins (ParamAngleXIN/YIN/ZIN) — physics setting #8 reads them
+#      and chains through ParamBodyXINF/YINF/ZINF to the body sway.
+#   4. The Option A VTube routing pass clobbers the head IN twins every
+#      frame from cursor input, so motion can't write them either.
+#
+# Fix: inject a small sinusoid into the head IN twins AFTER routing and
+# BEFORE physics. ADD (not set) so cursor's value still dominates; the
+# sway adds a small wobble on top, which physics propagates through the
+# rig's chain to produce visible body sway during TTS.
+#
+# Insertion point: lappmodel.ts update(), replacing the old body-bob
+# block (right after the watermark force-pin, before the original
+# cursor drag adds).
+#
+# Field declaration unchanged from prior body-bob patch:
+#   _speechRmsSmoothed: number;
+# Initialized in constructor:
+#   this._speechRmsSmoothed = 0;
+#
+# New block (replaces old body-bob block):
+#
+#   if (this._lipsync && this._wavFileHandler) {
+#     const rms = Math.min(1.0, this._wavFileHandler.getRms() * 1.5);
+#     this._speechRmsSmoothed = this._speechRmsSmoothed * 0.85 + rms * 0.15;
+#     if (this._speechRmsSmoothed > 0.005) {
+#       const t = this._userTimeSeconds;
+#       this._model.addParameterValueById(
+#         CubismFramework.getIdManager().getId("ParamAngleXIN"),
+#         Math.sin(t * 0.7) * 5.0 * this._speechRmsSmoothed
+#       );
+#       this._model.addParameterValueById(
+#         CubismFramework.getIdManager().getId("ParamAngleZIN"),
+#         Math.sin(t * 0.4 + 1.3) * 3.0 * this._speechRmsSmoothed
+#       );
+#     }
+#   }
+#
+# Tuning notes:
+#   - 5° X amplitude + 3° Z amplitude scaled by smoothed RMS gives a
+#     gentle wobble during typical speech. Phase offset on Z (+1.3 rad)
+#     prevents X and Z syncing into a flat repetitive arc.
+#   - 0.7 / 0.4 rad·s frequencies → ~0.9 / ~0.5 Hz, slow enough to read
+#     as natural body settling, fast enough to feel alive.
+#   - RMS gate at 0.005 stops the sway during silence between sentences.
+#   - Talk1.motion3.json / Talk2.motion3.json remain in the rig data but
+#     are effectively no-ops (they target *IN body twins which are
+#     orphaned in this rig). Future work: remove them from the model3.json
+#     Talk group, or repurpose for facial-expression timing if needed.
