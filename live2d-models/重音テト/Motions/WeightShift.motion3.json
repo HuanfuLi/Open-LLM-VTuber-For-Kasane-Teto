@@ -1,0 +1,30 @@
+{
+  "Version": 3,
+  "Meta": {
+    "Duration": 4.0,
+    "Fps": 30.0,
+    "Loop": true,
+    "AreBeziersRestricted": false,
+    "FadeInTime": 0.5,
+    "FadeOutTime": 0.5,
+    "CurveCount": 2,
+    "TotalSegmentCount": 10,
+    "TotalPointCount": 10
+  },
+  "Curves": [
+    {
+      "Target": "Parameter",
+      "Id": "ParamBodyAngleX",
+      "FadeInTime": 0.0,
+      "FadeOutTime": 0.0,
+      "Segments": [0, 0.0, 0.0, 0, 1.0, -2.0, 0, 2.0, 0.0, 0, 3.0, 2.0, 0, 4.0, 0.0]
+    },
+    {
+      "Target": "Parameter",
+      "Id": "ParamAngleZIN",
+      "FadeInTime": 0.0,
+      "FadeOutTime": 0.0,
+      "Segments": [0, 0.0, 0.0, 0, 1.0, -1.0, 0, 2.0, 0.0, 0, 3.0, 1.0, 0, 4.0, 0.0]
+    }
+  ]
+}
