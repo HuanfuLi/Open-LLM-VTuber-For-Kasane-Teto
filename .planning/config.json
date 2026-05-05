@@ -1,0 +1,8 @@
+{
+  "workflow": "new-project",
+  "preferences": {
+    "auto_commit": true,
+    "style": "senior-engineer",
+    "language": "en"
+  }
+}
