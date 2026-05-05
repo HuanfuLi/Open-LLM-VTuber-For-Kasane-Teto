@@ -13,10 +13,16 @@
 		"DisplayInfo": "重音テト.cdi3.json",
 		"Motions": {
 			"Idle": [
-				{ "File": "Motions/IDLE.motion3.json" }
+				{ "File": "Motions/IDLE.motion3.json" },
+				{ "File": "Motions/Breath.motion3.json" },
+				{ "File": "Motions/WeightShift.motion3.json" },
+				{ "File": "Motions/Gaze1.motion3.json" },
+				{ "File": "Motions/Gaze2.motion3.json" },
+				{ "File": "Motions/Gaze3.motion3.json" }
 			],
 			"Talk": [
-				{ "File": "Motions/IDLE.motion3.json" }
+				{ "File": "Motions/Talk1.motion3.json" },
+				{ "File": "Motions/Talk2.motion3.json" }
 			],
 			"Sleep": [
 				{ "File": "Motions/Sleep.motion3.json" }
