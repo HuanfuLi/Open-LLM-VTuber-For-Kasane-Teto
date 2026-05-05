@@ -84,8 +84,13 @@ def actions_extractor(live2d_model: Live2dModel):
                         for tag in sentence.tags
                     ):
                         expressions = live2d_model.extract_emotion(sentence.text)
-                        if expressions:
-                            actions.expressions = expressions
+                        # Phase 4 D-06: action tags also route through the
+                        # `expressions` wire field — they resolve to expression
+                        # Name strings via actionMap.
+                        action_expressions = live2d_model.extract_action(sentence.text)
+                        merged = (expressions or []) + (action_expressions or [])
+                        if merged:
+                            actions.expressions = merged
                     yield sentence, actions  # Yield the tuple
                 elif isinstance(item, dict):
                     # Pass through dictionaries
