@@ -174,6 +174,38 @@ def test_forbidden_set_matches_idle_motion3_json():
     )
 
 
+def test_talk_motions_avoid_routed_head_params():
+    """Talk motions must NOT animate ParamAngleXIN/YIN/ZIN or ParamBreath.
+
+    The Option A VTube routing patch (lappmodel.ts) runs AFTER the motion
+    manager and OVERWRITES these params every frame from the synthesized
+    cursor inputs (and 0 for ParamBreath since its routing input is
+    empty). Any Talk keyframe targeting them is silently clobbered, so
+    the motion produces no visible change — exactly the symptom that
+    surfaced in the manual smoke after Plan 04-02 was authored.
+
+    The fix is to drive body *IN twins (ParamBodyAngleXIN, YIN, ZIN),
+    which are not in the .vtube.json routing list and which the rig's
+    body bones are bound to. Source body params (ParamBodyAngleX/Y/Z)
+    appear unbound in this rig — writing them is also invisible.
+    """
+    routed_or_clobbered = {
+        "ParamAngleXIN",   # routed from FaceAngleX
+        "ParamAngleYIN",   # routed from FaceAngleY
+        "ParamAngleZIN",   # routed from FaceAngleZ
+        "ParamBreath",     # routed from "" (empty) → 0 every frame
+    }
+    for name in ("Talk1.motion3.json", "Talk2.motion3.json"):
+        data = _load_motion(name)
+        ids = {c["Id"] for c in data["Curves"]}
+        clobbered = ids & routed_or_clobbered
+        assert not clobbered, (
+            f"{name} animates routed/clobbered param(s) {clobbered} — "
+            f"the VTube routing pass overwrites these every frame, so "
+            f"the keyframes will be invisible. Drive body *IN twins instead."
+        )
+
+
 def test_idle_action_prop_pins_are_off():
     """IDLE must pin bread + mic prop params to 0.0 (rest = props hidden).
 
