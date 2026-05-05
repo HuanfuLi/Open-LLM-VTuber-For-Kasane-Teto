@@ -1,0 +1,26 @@
+[
+  {
+    "name": "TestTeto",
+    "description": "test fixture for Phase 4 action extraction",
+    "url": "/live2d-models/test/test.model3.json",
+    "kScale": 0.5,
+    "initialXshift": 0,
+    "initialYshift": 0,
+    "idleMotionGroupName": "Idle",
+    "defaultEmotion": 0,
+    "emotionMap": {
+      "neutral": 0,
+      "anger": 2,
+      "joy": 3,
+      "sadness": 1
+    },
+    "actionMap": {
+      "hold-mic": "SV Mic",
+      "utau-mic": "Utau Mic",
+      "bread-out": "SV Baguette",
+      "chibi": "chibi",
+      "hearts": "Heart",
+      "star-eyes": "Star Eye"
+    }
+  }
+]
