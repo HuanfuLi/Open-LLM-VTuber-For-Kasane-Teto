@@ -86,22 +86,64 @@ def test_motion_curvecount_matches_curves_length():
         assert data["Meta"]["CurveCount"] == len(data["Curves"]), name
 
 
-def test_motion_total_counts_consistent():
+def test_motion_segments_match_cubism_format():
+    """Validate Cubism motion3.json segment encoding by walking each curve.
+
+    Cubism format (verified against Sleep.motion3.json + IDLE.motion3.json):
+      - Initial point: 2 floats [time, value]
+      - Each subsequent segment: 3 floats [type, time, value]
+        where type ∈ {0=Linear, 1=Bezier, 2=Stepped, 3=InverseStepped}
+        Bezier (type=1) actually takes 6 floats (2 control + endpoint), not 2.
+      - Total floats per curve: 2 + Σ(per-segment floats)
+
+    Earlier iteration of this test only checked `len % 3 == 0`, which permitted
+    a malformed format where the initial point was encoded as a phantom
+    [type=0, time, value] segment. Cubism's WebSDK rejected those files at
+    runtime with `basePointIndex undefined`. This stricter test walks the
+    segment array exactly the way the SDK does.
+
+    Also verifies Meta.TotalSegmentCount and Meta.TotalPointCount equal the
+    walked counts.
+    """
+    VALID_TYPES = {0, 1, 2, 3}
     for name in NEW_MOTION_FILES:
         data = _load_motion(name)
+        total_segments = 0
         total_points = 0
         for curve in data["Curves"]:
-            # Each linear point in Segments is 3 floats: [type_prefix, time, value]
-            # First point may have different shape but Cubism convention pads consistently.
-            assert len(curve["Segments"]) % 3 == 0, (
-                f"{name}: {curve['Id']} segments not 3-aligned"
+            seg = curve["Segments"]
+            assert len(seg) >= 2, f"{name}::{curve['Id']} too short: {seg!r}"
+
+            # Initial point — 2 floats
+            n_segs = 0
+            n_pts = 1  # initial point itself
+            i = 2
+            while i < len(seg):
+                t = seg[i]
+                assert t in VALID_TYPES, (
+                    f"{name}::{curve['Id']} segment type {t!r} at index {i} "
+                    f"not in {VALID_TYPES}; full segments: {seg!r}"
+                )
+                if t == 1:  # Bezier — 6 floats follow (2 control + endpoint)
+                    i += 1 + 6
+                else:  # Linear, Stepped, InverseStepped — 2 floats follow
+                    i += 1 + 2
+                n_segs += 1
+                n_pts += 1
+            assert i == len(seg), (
+                f"{name}::{curve['Id']} segment walk overran/underran "
+                f"(stopped at {i}, len={len(seg)})"
             )
-            total_points += len(curve["Segments"]) // 3
-        assert data["Meta"]["TotalPointCount"] == total_points, (
-            f"{name}: TotalPointCount={data['Meta']['TotalPointCount']} but sum={total_points}"
+            total_segments += n_segs
+            total_points += n_pts
+
+        assert data["Meta"]["TotalSegmentCount"] == total_segments, (
+            f"{name}: Meta.TotalSegmentCount={data['Meta']['TotalSegmentCount']} "
+            f"but walked {total_segments}"
         )
-        assert data["Meta"]["TotalSegmentCount"] == total_points, (
-            f"{name}: TotalSegmentCount={data['Meta']['TotalSegmentCount']} but sum={total_points}"
+        assert data["Meta"]["TotalPointCount"] == total_points, (
+            f"{name}: Meta.TotalPointCount={data['Meta']['TotalPointCount']} "
+            f"but walked {total_points}"
         )
 
 
