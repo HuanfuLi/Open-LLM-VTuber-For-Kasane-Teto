@@ -5,4 +5,4 @@ patches:
   - patches/tts-head-in-sway.patch
 build_command: npm run build:web
 build_output: dist/web/
-built_on: 2026-05-05T10:20:52Z
+built_on: 2026-05-05T10:33:36Z
