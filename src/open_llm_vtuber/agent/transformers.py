@@ -88,7 +88,11 @@ def actions_extractor(live2d_model: Live2dModel):
                         # `expressions` wire field — they resolve to expression
                         # Name strings via actionMap.
                         action_expressions = live2d_model.extract_action(sentence.text)
-                        merged = (expressions or []) + (action_expressions or [])
+                        # Action-first ordering: the frontend audio handler only
+                        # applies expressions[0] per audio chunk, so action props
+                        # (mic, bread, hearts) take precedence when present.
+                        # Emotion stays as fallback when no action is emitted.
+                        merged = (action_expressions or []) + (expressions or [])
                         if merged:
                             actions.expressions = merged
                     yield sentence, actions  # Yield the tuple

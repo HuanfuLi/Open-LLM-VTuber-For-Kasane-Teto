@@ -86,6 +86,46 @@ async def test_decorator_pipes_action_through_to_actions_expressions(teto_model)
 
 
 @pytest.mark.asyncio
+async def test_decorator_orders_action_before_emotion(teto_model):
+    """When both emotion and action tags are present, the merged list
+    puts the action FIRST.
+
+    Why: the frontend audio handler (use-audio-task.ts) only applies
+    expressions[0] per audio chunk. With action-first ordering, action
+    props (mic, bread, hearts) take precedence when the LLM emits both
+    an emotion and an action tag — which the persona prompt now requires
+    on every response. Emotion stays as fallback when no action is
+    emitted.
+
+    Without this ordering, [neutral] [hold-mic] would only fire the
+    neutral emotion (which is "Remove Water Mark", not a face change),
+    and the mic prop would never appear.
+    """
+    sentence = SentenceWithTags(text="[joy] hi [hold-mic] there", tags=[])
+
+    @actions_extractor(teto_model)
+    async def wrapped():
+        async for it in _fake_upstream([sentence]):
+            yield it
+
+    outputs = []
+    async for item in wrapped():
+        outputs.append(item)
+
+    assert len(outputs) == 1
+    _, out_actions = outputs[0]
+    # Action ("SV Mic") must come BEFORE emotion (3 = joy/Love).
+    assert out_actions.expressions[0] == "SV Mic", (
+        f"action must lead expressions list when both present; got "
+        f"{out_actions.expressions!r}"
+    )
+    assert 3 in out_actions.expressions, (
+        f"emotion must still be in expressions list as fallback; got "
+        f"{out_actions.expressions!r}"
+    )
+
+
+@pytest.mark.asyncio
 async def test_decorator_passes_through_dict_items(teto_model):
     """Decorator passes through dict items unchanged (existing contract)."""
     dict_item = {"type": "system", "payload": "ping"}

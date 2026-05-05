@@ -174,6 +174,39 @@ def test_forbidden_set_matches_idle_motion3_json():
     )
 
 
+def test_idle_action_prop_pins_are_off():
+    """IDLE must pin bread + mic prop params to 0.0 (rest = props hidden).
+
+    The original VTube Studio bundle shipped IDLE pinning ParamBHandIN and
+    ParamSVMCON to 1.0, which in this rig's convention shows the bread and
+    SV-style microphone props at all times. The action expressions (SV
+    Baguette, SV Mic) Add +1 — going from 1 to 2 — which is at or above
+    the param's max and produces no visible change. Net result: bread and
+    mic always visible, never controllable.
+
+    The fix is to pin them at 0.0 instead. Rest = hidden; expression Add
+    +1 takes them to 1.0 = visible. When the expression is evicted from
+    the Cubism queue, the Cubism Web SDK's _expressionParameterValues
+    overwriteValue (captured first-frame at the IDLE pin value, now 0.0)
+    causes the param to revert to 0.0 = hidden. No more persistence.
+
+    Heart/Star/Chibi/etc. pins stay at 1.0 — those expressions Add -1.0
+    (or use Paramchibi's much larger range), so the convention is
+    inverted for them and 1.0 is the correct "off" baseline.
+    """
+    path = MOTIONS_DIR / "IDLE.motion3.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    pins = {c["Id"]: c["Segments"] for c in data["Curves"]}
+    assert pins["ParamBHandIN"] == [0, 0.0, 0, 1.0, 0.0], (
+        f"ParamBHandIN must be pinned at 0.0 (bread hidden at rest); "
+        f"got {pins.get('ParamBHandIN')}"
+    )
+    assert pins["ParamSVMCON"] == [0, 0.0, 0, 1.0, 0.0], (
+        f"ParamSVMCON must be pinned at 0.0 (mic hidden at rest); "
+        f"got {pins.get('ParamSVMCON')}"
+    )
+
+
 def test_model3_motion_groups_updated():
     """The Idle group must contain ONLY IDLE.motion3.json.
 
