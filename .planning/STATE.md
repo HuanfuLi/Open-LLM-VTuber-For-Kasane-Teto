@@ -38,6 +38,9 @@
 - infer_neurosync raises NotImplementedError stub; DSP fallback covers CI path
 - try/except relative import in main.py supports both direct and -m invocation
 
+### Pending Todos
+- [Multi-expression composition — face emotion + action prop](todos/pending/2026-05-05-multi-expression-composition-face-plus-action-prop.md) — phase 5+ enhancement, captured 2026-05-05 from manual smoke
+
 ### Performance Metrics
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
