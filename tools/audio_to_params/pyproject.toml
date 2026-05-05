@@ -1,0 +1,21 @@
+[project]
+name = "audio_to_params"
+version = "0.0.1"
+description = "Phase 4 D-07 sidecar: audio + transcript -> Live2D parameter trajectory (NeuroSync wrapper + DSP fallback)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "loguru>=0.7",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+neurosync = [
+    # NeuroSync_Local_API installed manually per README (not on PyPI as of research date 2026-05-04)
+    "onnxruntime>=1.16",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

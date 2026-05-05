@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+neurosync_weights/
+*.onnx
+*.pth
+*.bin
+*_traj.json
