@@ -455,8 +455,15 @@ class ServiceContext:
             prompt_content = prompt_loader.load_util(prompt_file)
 
             if prompt_name == "live2d_expression_prompt":
+                # Backwards-compat: legacy placeholder for character templates that
+                # haven't migrated yet (substitutes emo_str only — no action vocab).
                 prompt_content = prompt_content.replace(
                     "[<insert_emomap_keys>]", self.live2d_model.emo_str
+                )
+                # Phase 4 D-10: new placeholder injects merged emotion + action vocab.
+                # If the model has no actionMap, full_action_str == emo_str (safe fallback).
+                prompt_content = prompt_content.replace(
+                    "[<insert_action_keys>]", self.live2d_model.full_action_str
                 )
 
             if prompt_name == "mcp_prompt":
