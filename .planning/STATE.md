@@ -1,6 +1,6 @@
 # Project State: Vivid Actions
 
-## Current Phase: 04-vivid-actions | Plan 5 of 6
+## Current Phase: 04-vivid-actions | COMPLETE (6 of 6)
 
 ## Active Tasks
 - None
@@ -13,6 +13,9 @@
 - Phase 04 Plan 02: Teto Motion Authoring (DONE)
 - Phase 04 Plan 03: Richer LLM Action Vocabulary (DONE)
 - Phase 04 Plan 04: Audio-to-Params Sidecar (DONE)
+- Phase 04 Plan 05: Frontend Rebuild + TTS Head-IN Sway (DONE)
+- Phase 04 Plan 06: Integrated Smoke + D-03 Vibes Verdict (DONE — PASS)
+- Phase 04: Vivid Actions COMPLETE — 36/36 tests GREEN, vibes verdict PASS
 
 ## Blockers
 - None
@@ -21,6 +24,7 @@
 
 ### Roadmap Evolution
 - Phase 4 added: Vivid actions
+- Phase 4 closed 2026-05-05 with vibes verdict PASS (two polish items deferred)
 
 ### Decisions
 - pytest 9.0.3 installed as dev dependency via uv add --dev pytest
@@ -37,9 +41,14 @@
 - tools/__init__.py added to make tools/ a Python package for -m invocation support
 - infer_neurosync raises NotImplementedError stub; DSP fallback covers CI path
 - try/except relative import in main.py supports both direct and -m invocation
+- Option A (face-tracker → ParamAngle*IN twins via .vtube.json ParameterSettings) chosen over Option B (rewrite VTS deformer chain)
+- TTS sway delivered via head-IN injection (ParamAngleXIN/ZIN), AFTER routing, BEFORE physics — physics chain forwards to body via ParamBodyXINF/YINF/ZINF
+- IDLE pin convention bug (P0): VTube Studio uses 1.0=visible for prop-mount params, requires flipping to 0.0 for Cubism Web SDK overlay model — see 04-PROP-PERSISTENCE-FIX.md
+- Action-first merge order in actions_extractor: frontend single-slot consumer reads expressions[0], so action wins when both action+emotion present (multi-expression deferred to phase 5+)
 
 ### Pending Todos
 - [Multi-expression composition — face emotion + action prop](todos/pending/2026-05-05-multi-expression-composition-face-plus-action-prop.md) — phase 5+ enhancement, captured 2026-05-05 from manual smoke
+- [TTS body sway naturalness](todos/pending/2026-05-05-tts-body-sway-naturalness.md) — phase 5+ tuning pass, current sway feels mechanical, deferred 2026-05-05 at phase closure
 
 ### Performance Metrics
 | Phase | Plan | Duration | Tasks | Files |
@@ -48,6 +57,8 @@
 | 04 | 02 | ~10 min | 3/3 | 8 created, 1 modified |
 | 04 | 03 | ~12 min | 3/3 | 2 created, 6 modified |
 | 04 | 04 | ~10 min | 3/3 | 9 created, 0 modified |
+| 04 | 05 | ~3 hr | iterative | 5 created, 4 modified |
+| 04 | 06 | ~30 min | smoke | 3 created (all docs) |
 
 ### Session Log
 - 2026-05-04 — Phase 4 context gathered. Resume from `.planning/phases/04-vivid-actions/04-CONTEXT.md`.
@@ -55,3 +66,4 @@
 - 2026-05-04 — Plan 04-02 complete. 7 motion3.json files authored, model3.json updated, 7 tests GREEN. Stopped at: Completed 04-02-PLAN.md.
 - 2026-05-05 — Plan 04-03 complete. actionMap loading, extract_action, actions_extractor merge, prompt injection — 23 tests GREEN. Stopped at: Completed 04-03-PLAN.md.
 - 2026-05-05 — Plan 04-04 complete. D-07 sidecar: tools/audio_to_params/ DSP fallback pipeline — 28 tests GREEN (5 new). Stopped at: Completed 04-04-PLAN.md.
+- 2026-05-05 — Plans 04-05 + 04-06 complete. Frontend rebuild with Option A + TTS head-IN sway + bundle regression test. P0 prop-persistence bug fixed mid-smoke (IDLE pin convention). Vibes verdict PASS with sway-naturalness + multi-expression deferred. Phase 4 COMPLETE — 36/36 tests GREEN.
