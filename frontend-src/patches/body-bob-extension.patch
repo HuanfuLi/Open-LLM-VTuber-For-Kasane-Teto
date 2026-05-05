@@ -1,8 +1,36 @@
 # Phase 4 D-04 — body-bob audio-RMS extension
 # Source spec: 04-RESEARCH.md "Verified Pattern 4"
 # Target: Open-LLM-VTuber-Web/src/renderer/WebSDK/src/lappmodel.ts
-# Adds: _speechRmsSmoothed field; in update() after the Option A
-# routing block and watermark force-pin, reads _wavFileHandler.getRms()
-# with EMA smoothing (alpha=0.15) and applies it to ParamBodyAngleY
-# via addParameterValueById, scaled by 3.0 (max 3 degrees sway).
-# Regenerate this file with `git diff -p` after applying in Task 2.
+#
+# NOTE: This extension is merged into lappmodel-vtube-routing.patch because
+# both patches modify the same file (lappmodel.ts) in adjacent/overlapping
+# regions. Applying them separately would cause context conflicts.
+#
+# The body-bob changes included in lappmodel-vtube-routing.patch are:
+#
+# 1. Field declaration added after _consistency:
+#    _speechRmsSmoothed: number; // Phase 4 D-04 body-bob EMA state
+#
+# 2. Field initialization in constructor after this._consistency = false:
+#    this._speechRmsSmoothed = 0;
+#
+# 3. In update(), after the watermark force-pin from Option A:
+#    // Phase 4 D-04 body-bob extension: drive ParamBodyAngleY from
+#    // TTS audio RMS so the body sways subtly during speech.
+#    if (this._lipsync && this._wavFileHandler) {
+#      const rms = Math.min(1.0, this._wavFileHandler.getRms() * 1.5);
+#      this._speechRmsSmoothed = this._speechRmsSmoothed * 0.85 + rms * 0.15;
+#      this._model.addParameterValueById(
+#        CubismFramework.getIdManager().getId("ParamBodyAngleY"),
+#        this._speechRmsSmoothed * 3.0
+#      );
+#    }
+#
+# Algorithm:
+#   - getRms() from LAppWavFileHandler returns current audio amplitude (0..1)
+#   - Scaled by 1.5 and clamped to 1.0 to boost quiet speech
+#   - EMA smoothing with alpha=0.15 (tau ~= 6 frames at 30fps)
+#   - addParameterValueById with scale=3.0 gives max ~3 degrees of body sway
+#   - addParameterValueById (not set) means it composes with authored body motion
+#   - ParamBodyAngleY is a standard Cubism ID not in Teto's vtube.json,
+#     so it goes directly to the rig's body sway parameter

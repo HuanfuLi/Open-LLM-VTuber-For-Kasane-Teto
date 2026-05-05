@@ -1,6 +1,189 @@
-# Phase 4 D-04 — Option A VTube routing patch
-# Source spec: patches/lappmodel-vtube-routing.md
-# Target: Open-LLM-VTuber-Web/src/renderer/WebSDK/src/lappmodel.ts
-# NOTE: Regenerate this file with `git diff -p` after applying the hunks
-# in Task 2. The spec text is the source of truth; this file is the
-# buildable form.
+diff --git a/src/renderer/WebSDK/src/lappmodel.ts b/src/renderer/WebSDK/src/lappmodel.ts
+index 00ab2c2..edab48b 100644
+--- a/src/renderer/WebSDK/src/lappmodel.ts
++++ b/src/renderer/WebSDK/src/lappmodel.ts
+@@ -83,6 +83,7 @@ export class LAppModel extends CubismUserModel {
+    */
+   public loadAssets(dir: string, fileName: string): void {
+     this._modelHomeDir = dir;
++    this._loadVtubeRouting(fileName);
+
+     fetch(`${this._modelHomeDir}${fileName}`)
+       .then((response) => response.arrayBuffer())
+@@ -104,6 +105,39 @@ export class LAppModel extends CubismUserModel {
+       });
+   }
+
++  private _loadVtubeRouting(modelFileName: string): void {
++    const vtubeFile = modelFileName.replace(/\.model3\.json$/, ".vtube.json");
++    if (vtubeFile === modelFileName) return;
++
++    fetch(`${this._modelHomeDir}${vtubeFile}`)
++      .then((r) => (r.ok ? r.json() : null))
++      .then((cfg: any) => {
++        if (!cfg || !Array.isArray(cfg.ParameterSettings)) return;
++        const idMgr = CubismFramework.getIdManager();
++        this._vtubeRoutings = cfg.ParameterSettings
++          .filter(
++            (p: any) =>
++              p && typeof p.Input === "string" && typeof p.OutputLive2D === "string"
++          )
++          .map((p: any) => ({
++            input: String(p.Input),
++            inputLow: Number(p.InputRangeLower),
++            inputHigh: Number(p.InputRangeUpper),
++            outputLow: Number(p.OutputRangeLower),
++            outputHigh: Number(p.OutputRangeUpper),
++            clampInput: !!p.ClampInput,
++            clampOutput: !!p.ClampOutput,
++            outputId: idMgr.getId(String(p.OutputLive2D)),
++          }));
++        CubismLogInfo(
++          `[VTubeRouting] Loaded ${this._vtubeRoutings.length} routes from ${vtubeFile}`
++        );
++      })
++      .catch(() => {
++        /* .vtube.json absent or invalid — keep stock behavior */
++      });
++  }
++
+   /**
+    * model3.jsonからモデルを生成する。
+    * model3.jsonの記述に従ってモデル生成、モーション、物理演算などのコンポーネント生成を行う。
+@@ -448,7 +482,7 @@ export class LAppModel extends CubismUserModel {
+         this._updating = false;
+         this._initialized = true;
+
+-        this.createRenderer();
++        this.createRenderer(4);
+         this.setupTextures();
+         this.getRenderer().startUp(gl);
+         return;
+@@ -469,7 +503,7 @@ export class LAppModel extends CubismUserModel {
+         this._updating = false;
+         this._initialized = true;
+
+-        this.createRenderer();
++        this.createRenderer(4);
+         this.setupTextures();
+         this.getRenderer().startUp(gl);
+       }
+@@ -533,7 +567,7 @@ export class LAppModel extends CubismUserModel {
+    */
+   public reloadRenderer(): void {
+     this.deleteRenderer();
+-    this.createRenderer();
++    this.createRenderer(4);
+     this.setupTextures();
+   }
+
+@@ -582,6 +616,75 @@ export class LAppModel extends CubismUserModel {
+       this._expressionManager.updateMotion(this._model, deltaTimeSeconds); // 表情でパラメータ更新（相対変化）
+     }
+
++    // VTube Studio parameter routing (Option A patch).
++    // Synthesizes face-tracker inputs from drag and applies the model's
++    // .vtube.json ParameterSettings rules to the *IN-suffixed twins
++    // that the rig is actually bound to. No-op if the model doesn't
++    // ship a .vtube.json.
++    if (this._vtubeRoutings.length > 0) {
++      const dx = this._dragX;
++      const dy = this._dragY;
++      const inputs: { [k: string]: number } = {
++        FaceAngleX: dx * 30,
++        FaceAngleY: -dy * 30,
++        FaceAngleZ: -dx * 30 * 0.5,
++        FacePositionX: dx * 0.3,
++        FacePositionY: -dy * 0.3,
++        FacePositionZ: 0,
++        EyeLeftX: dx,
++        EyeLeftY: dy,
++        EyeRightX: dx,
++        EyeRightY: dy,
++        EyeOpenLeft: 1,
++        EyeOpenRight: 1,
++        BrowLeftY: 0,
++        BrowRightY: 0,
++        MouthOpen: 0,
++        MouthSmile: 0,
++        MouthX: 0,
++        JawOpen: 0,
++        CheekPuff: 0,
++        MouthPucker: 0,
++        MouthFunnel: 0,
++        TongueOut: 0,
++      };
++      for (const r of this._vtubeRoutings) {
++        let v = inputs[r.input] ?? 0;
++        if (r.clampInput) {
++          v = Math.max(r.inputLow, Math.min(r.inputHigh, v));
++        }
++        const span = r.inputHigh - r.inputLow;
++        const t = span !== 0 ? (v - r.inputLow) / span : 0;
++        let out = r.outputLow + t * (r.outputHigh - r.outputLow);
++        if (r.clampOutput) {
++          const lo = Math.min(r.outputLow, r.outputHigh);
++          const hi = Math.max(r.outputLow, r.outputHigh);
++          out = Math.max(lo, Math.min(hi, out));
++        }
++        this._model.setParameterValueById(r.outputId, out);
++      }
++    }
++
++    // Watermark: force-off every frame for VTS-extracted models that
++    // bake a watermark drawable controlled by ParamWatermarkOFF.
++    // setParameterValueById is a no-op for parameters that don't exist,
++    // so this is safe for non-VTS models.
++    this._model.setParameterValueById(
++      CubismFramework.getIdManager().getId("ParamWatermarkOFF"),
++      1
++    );
++
++    // Phase 4 D-04 body-bob extension: drive ParamBodyAngleY from
++    // TTS audio RMS so the body sways subtly during speech.
++    if (this._lipsync && this._wavFileHandler) {
++      const rms = Math.min(1.0, this._wavFileHandler.getRms() * 1.5);
++      this._speechRmsSmoothed = this._speechRmsSmoothed * 0.85 + rms * 0.15;
++      this._model.addParameterValueById(
++        CubismFramework.getIdManager().getId("ParamBodyAngleY"),
++        this._speechRmsSmoothed * 3.0
++      );
++    }
++
+     // ドラッグによる変化
+     // ドラッグによる顔の向きの調整
+     this._model.addParameterValueById(this._idParamAngleX, this._dragX * 30); // -30から30の値を加える
+@@ -971,7 +1074,7 @@ export class LAppModel extends CubismUserModel {
+               this._updating = false;
+               this._initialized = true;
+
+-              this.createRenderer();
++              this.createRenderer(4);
+               this.setupTextures();
+               this.getRenderer().startUp(gl);
+             }
+@@ -1313,6 +1416,8 @@ export class LAppModel extends CubismUserModel {
+     this._allMotionCount = 0;
+     this._wavFileHandler = new LAppWavFileHandler();
+     this._consistency = false;
++    this._vtubeRoutings = [];
++    this._speechRmsSmoothed = 0;
+   }
+
+   _modelSetting: ICubismModelSetting; // モデルセッティング情報
+@@ -1342,4 +1447,15 @@ export class LAppModel extends CubismUserModel {
+   _allMotionCount: number; // モーション総数
+   _wavFileHandler: LAppWavFileHandler; //wavファイルハンドラ
+   _consistency: boolean; // MOC3一貫性チェック管理用
++  _vtubeRoutings: Array<{
++    input: string;
++    inputLow: number;
++    inputHigh: number;
++    outputLow: number;
++    outputHigh: number;
++    clampInput: boolean;
++    clampOutput: boolean;
++    outputId: CubismIdHandle;
++  }>;
++  _speechRmsSmoothed: number; // Phase 4 D-04 body-bob EMA state
+ }
