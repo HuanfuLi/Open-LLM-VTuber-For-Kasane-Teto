@@ -22,7 +22,7 @@
 #      this._speechRmsSmoothed = this._speechRmsSmoothed * 0.85 + rms * 0.15;
 #      this._model.addParameterValueById(
 #        CubismFramework.getIdManager().getId("ParamBodyAngleY"),
-#        this._speechRmsSmoothed * 3.0
+#        this._speechRmsSmoothed * 8.0
 #      );
 #    }
 #
@@ -30,7 +30,8 @@
 #   - getRms() from LAppWavFileHandler returns current audio amplitude (0..1)
 #   - Scaled by 1.5 and clamped to 1.0 to boost quiet speech
 #   - EMA smoothing with alpha=0.15 (tau ~= 6 frames at 30fps)
-#   - addParameterValueById with scale=3.0 gives max ~3 degrees of body sway
+#   - addParameterValueById with scale=8.0 gives ~6-8 degrees of body sway during typical speech.
+#     Earlier 3.0 was too subtle to perceive (~1.5 degrees).
 #   - addParameterValueById (not set) means it composes with authored body motion
 #   - ParamBodyAngleY is a standard Cubism ID not in Teto's vtube.json,
 #     so it goes directly to the rig's body sway parameter

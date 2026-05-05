@@ -91,10 +91,10 @@ index 00ab2c2..edab48b 100644
 +      const dy = this._dragY;
 +      const inputs: { [k: string]: number } = {
 +        FaceAngleX: dx * 30,
-+        FaceAngleY: -dy * 30,
++        FaceAngleY: dy * 30,
 +        FaceAngleZ: -dx * 30 * 0.5,
 +        FacePositionX: dx * 0.3,
-+        FacePositionY: -dy * 0.3,
++        FacePositionY: dy * 0.3,
 +        FacePositionZ: 0,
 +        EyeLeftX: dx,
 +        EyeLeftY: dy,
@@ -146,7 +146,7 @@ index 00ab2c2..edab48b 100644
 +      this._speechRmsSmoothed = this._speechRmsSmoothed * 0.85 + rms * 0.15;
 +      this._model.addParameterValueById(
 +        CubismFramework.getIdManager().getId("ParamBodyAngleY"),
-+        this._speechRmsSmoothed * 3.0
++        this._speechRmsSmoothed * 8.0
 +      );
 +    }
 +
