@@ -89,32 +89,26 @@ index 00ab2c2..edab48b 100644
 +    if (this._vtubeRoutings.length > 0) {
 +      const dx = this._dragX;
 +      const dy = this._dragY;
++      // Only include keys we actually drive. Routes whose input isn't in
++      // this dict are SKIPPED below (do not fall through to 0 — that pulls
++      // mouth/brow params to their resting "0-neutral" pose which on this
++      // rig looks angry, and overrides motion-driven params like ParamBreath).
 +      const inputs: { [k: string]: number } = {
 +        FaceAngleX: dx * 30,
 +        FaceAngleY: dy * 30,
 +        FaceAngleZ: -dx * 30 * 0.5,
 +        FacePositionX: dx * 0.3,
 +        FacePositionY: dy * 0.3,
-+        FacePositionZ: 0,
 +        EyeLeftX: dx,
 +        EyeLeftY: dy,
 +        EyeRightX: dx,
 +        EyeRightY: dy,
 +        EyeOpenLeft: 1,
 +        EyeOpenRight: 1,
-+        BrowLeftY: 0,
-+        BrowRightY: 0,
-+        MouthOpen: 0,
-+        MouthSmile: 0,
-+        MouthX: 0,
-+        JawOpen: 0,
-+        CheekPuff: 0,
-+        MouthPucker: 0,
-+        MouthFunnel: 0,
-+        TongueOut: 0,
 +      };
 +      for (const r of this._vtubeRoutings) {
-+        let v = inputs[r.input] ?? 0;
++        if (!(r.input in inputs)) continue;
++        let v = inputs[r.input];
 +        if (r.clampInput) {
 +          v = Math.max(r.inputLow, Math.min(r.inputHigh, v));
 +        }
