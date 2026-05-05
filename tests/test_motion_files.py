@@ -175,14 +175,26 @@ def test_forbidden_set_matches_idle_motion3_json():
 
 
 def test_model3_motion_groups_updated():
+    """The Idle group must contain ONLY IDLE.motion3.json.
+
+    IDLE.motion3.json pins 36 expression-state parameters (watermark, anger,
+    heart-eye, prop overlays, cry overlays, etc.) to neutral. If we add other
+    motions to the Idle group, the SDK randomly picks one each cycle, and 5/6
+    of the time those pins don't apply — parameters drift to MOC defaults
+    and the angry/cry/etc. overlays become visible.
+
+    The 5 ambient gesture motion files (Breath, WeightShift, Gaze1-3) remain
+    in the repo as content but are NOT registered. Future work: replicate
+    IDLE's 36 pins inside each ambient motion (or add a second motion manager
+    to the bundle for layered playback).
+    """
     path = Path("live2d-models/重音テト/重音テト.model3.json")
     data = json.loads(path.read_text(encoding="utf-8"))
     motions = data["FileReferences"]["Motions"]
-    assert len(motions["Idle"]) == 6, motions["Idle"]
+    assert motions["Idle"] == [{"File": "Motions/IDLE.motion3.json"}], (
+        f"Idle group must contain only IDLE.motion3.json; got {motions['Idle']}"
+    )
     assert len(motions["Talk"]) == 2, motions["Talk"]
-    idle_files = {entry["File"] for entry in motions["Idle"]}
-    assert "Motions/IDLE.motion3.json" in idle_files
-    assert "Motions/Breath.motion3.json" in idle_files
     talk_files = {entry["File"] for entry in motions["Talk"]}
     assert "Motions/Talk1.motion3.json" in talk_files
     assert "Motions/Talk2.motion3.json" in talk_files
